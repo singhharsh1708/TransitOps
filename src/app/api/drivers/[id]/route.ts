@@ -21,6 +21,23 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const parsed = updateSchema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input");
 
+  const current = await prisma.driver.findUnique({ where: { id } });
+  if (!current) return fail("Driver not found", 404);
+
+  // ON_TRIP is owned by the trip workflow. Flipping an On Trip driver back to
+  // Available by hand would desync them from their dispatched trip, so status
+  // edits wait until the trip is completed or cancelled. Sending the current
+  // status back unchanged is always fine.
+  const nextStatus = parsed.data.status;
+  if (nextStatus && nextStatus !== current.status) {
+    if (current.status === "ON_TRIP") {
+      return fail("Driver is On Trip; complete or cancel the trip to change their status");
+    }
+    if (nextStatus === "ON_TRIP") {
+      return fail("On Trip is set by dispatching a trip, not manually");
+    }
+  }
+
   if (parsed.data.licenseNo) {
     const dup = await prisma.driver.findFirst({
       where: { licenseNo: parsed.data.licenseNo, NOT: { id } },

@@ -138,9 +138,17 @@ export default function DriversPage() {
           <div><label className="label">Safety Score</label>
             <input className="input" type="number" min="0" max="100" value={form.safetyScore} onChange={(e) => setForm({ ...form, safetyScore: e.target.value })} /></div>
           <div><label className="label">Status</label>
-            <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-              {Object.entries(DRIVER_STATUS_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select></div>
+            {/* On Trip is set by dispatching a trip, so the manual picker only
+                offers the statuses the Safety Officer actually manages. */}
+            {editing && editing.status === "ON_TRIP" ? (
+              <select className="input" value={form.status} disabled>
+                <option value="ON_TRIP">{DRIVER_STATUS_LABELS.ON_TRIP}</option>
+              </select>
+            ) : (
+              <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                {["AVAILABLE", "OFF_DUTY", "SUSPENDED"].map((v) => <option key={v} value={v}>{DRIVER_STATUS_LABELS[v]}</option>)}
+              </select>
+            )}</div>
           <div className="col-span-2"><ErrorText message={error} /></div>
           <div className="col-span-2 flex justify-end gap-2">
             <button type="button" onClick={() => setModal(false)} className="btn-ghost">Cancel</button>
