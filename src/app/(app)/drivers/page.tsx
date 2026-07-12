@@ -96,7 +96,7 @@ export default function DriversPage() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {rows.map((d) => (
-              <tr key={d.id}>
+              <tr key={d.id} className="row-hover">
                 <td className="td font-medium">{d.name}</td>
                 <td className="td">{d.licenseNo}</td>
                 <td className="td">{d.licenseCategory}</td>

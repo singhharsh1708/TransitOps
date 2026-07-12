@@ -108,7 +108,7 @@ export default function TripsPage() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {rows.map((t) => (
-              <tr key={t.id}>
+              <tr key={t.id} className="row-hover">
                 <td className="td font-medium">{t.source} → {t.destination}</td>
                 <td className="td">{t.vehicle.registrationNo}</td>
                 <td className="td">{t.driver.name}</td>

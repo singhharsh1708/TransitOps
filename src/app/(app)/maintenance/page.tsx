@@ -67,7 +67,7 @@ export default function MaintenancePage() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {rows.map((m) => (
-              <tr key={m.id}>
+              <tr key={m.id} className="row-hover">
                 <td className="td font-medium">{m.vehicle.registrationNo}</td>
                 <td className="td">{m.title}</td>
                 <td className="td text-slate-500">{m.description || "—"}</td>

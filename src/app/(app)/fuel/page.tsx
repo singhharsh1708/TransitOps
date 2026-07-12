@@ -66,7 +66,7 @@ export default function FuelPage() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {rows.map((r) => (
-              <tr key={r.id}>
+              <tr key={r.id} className="row-hover">
                 <td className="td font-medium">{r.vehicle.registrationNo}</td>
                 <td className="td">{r.liters} L</td>
                 <td className="td">{fmtMoney(r.cost)}</td>

@@ -104,7 +104,7 @@ export default function VehiclesPage() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {rows.map((v) => (
-              <tr key={v.id}>
+              <tr key={v.id} className="row-hover">
                 <td className="td font-medium">{v.registrationNo}</td>
                 <td className="td">{v.name}</td>
                 <td className="td">{v.type}</td>

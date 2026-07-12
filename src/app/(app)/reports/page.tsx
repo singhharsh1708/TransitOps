@@ -34,7 +34,7 @@ export default function ReportsPage() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {rows.map((r) => (
-              <tr key={r.registrationNo}>
+              <tr key={r.registrationNo} className="row-hover">
                 <td className="td font-medium">{r.registrationNo}<div className="text-xs text-slate-400">{r.name}</div></td>
                 <td className="td">{fmtMoney(r.fuelCost)}</td>
                 <td className="td">{fmtMoney(r.maintCost)}</td>
