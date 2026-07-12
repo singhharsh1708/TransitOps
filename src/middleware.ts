@@ -1,9 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
-
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "insecure-dev-secret",
-);
+import { jwtSecret as secret } from "./lib/secret";
 
 const PUBLIC_PATHS = ["/login", "/api/auth/login"];
 
