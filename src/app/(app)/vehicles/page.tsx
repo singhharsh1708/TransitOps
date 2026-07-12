@@ -144,9 +144,17 @@ export default function VehiclesPage() {
           <div><label className="label">Region</label>
             <input className="input" value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} /></div>
           <div><label className="label">Status</label>
-            <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-              {Object.entries(VEHICLE_STATUS_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select></div>
+            {/* On Trip / In Shop are set by the trip and maintenance workflows,
+                so the manual picker only offers Available and Retired. */}
+            {editing && (editing.status === "ON_TRIP" || editing.status === "IN_SHOP") ? (
+              <select className="input" value={form.status} disabled>
+                <option value={editing.status}>{VEHICLE_STATUS_LABELS[editing.status]}</option>
+              </select>
+            ) : (
+              <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                {["AVAILABLE", "RETIRED"].map((v) => <option key={v} value={v}>{VEHICLE_STATUS_LABELS[v]}</option>)}
+              </select>
+            )}</div>
           <div className="col-span-2"><ErrorText message={error} /></div>
           <div className="col-span-2 flex justify-end gap-2">
             <button type="button" onClick={() => setModal(false)} className="btn-ghost">Cancel</button>

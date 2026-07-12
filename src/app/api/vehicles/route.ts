@@ -11,7 +11,9 @@ const createSchema = z.object({
   odometer: z.coerce.number().min(0).default(0),
   acquisitionCost: z.coerce.number().min(0).default(0),
   region: z.string().default("General"),
-  status: z.enum(["AVAILABLE", "ON_TRIP", "IN_SHOP", "RETIRED"]).default("AVAILABLE"),
+  // ON_TRIP and IN_SHOP are set by the trip and maintenance workflows; a new
+  // vehicle has neither, so only these two make sense at registration.
+  status: z.enum(["AVAILABLE", "RETIRED"]).default("AVAILABLE"),
 });
 
 export async function GET(req: Request) {

@@ -22,6 +22,33 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const parsed = updateSchema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input");
 
+  const current = await prisma.vehicle.findUnique({ where: { id } });
+  if (!current) return fail("Vehicle not found", 404);
+
+  // ON_TRIP and IN_SHOP are owned by the trip and maintenance workflows.
+  // Editing them by hand would desync the vehicle from its trip or open
+  // maintenance log, so manual edits may only move between Available and
+  // Retired. Sending the current status back unchanged is always fine.
+  const nextStatus = parsed.data.status;
+  if (nextStatus && nextStatus !== current.status) {
+    if (current.status === "ON_TRIP") {
+      return fail("Vehicle is On Trip; complete or cancel the trip to change its status");
+    }
+    if (current.status === "IN_SHOP") {
+      return fail("Vehicle is In Shop; close the maintenance log to change its status");
+    }
+    if (nextStatus === "ON_TRIP" || nextStatus === "IN_SHOP") {
+      return fail("On Trip and In Shop are set by dispatching a trip or opening maintenance, not manually");
+    }
+  }
+
+  // The odometer only moves forward, same as on trip completion.
+  if (parsed.data.odometer !== undefined && parsed.data.odometer < current.odometer) {
+    return fail(
+      `Odometer ${parsed.data.odometer} is below the current reading ${current.odometer}`,
+    );
+  }
+
   if (parsed.data.registrationNo) {
     const dup = await prisma.vehicle.findFirst({
       where: { registrationNo: parsed.data.registrationNo, NOT: { id } },
