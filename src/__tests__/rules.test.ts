@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { validateDispatch } from "../lib/rules";
+import { validateDispatch, claimForDispatch, DispatchConflictError } from "../lib/rules";
 import { prisma } from "../lib/db";
 
 // Mock the prisma client
@@ -212,5 +212,44 @@ describe("validateDispatch business rules", () => {
       ok: false,
       message: "Cargo 800kg exceeds vehicle capacity 750kg",
     });
+  });
+});
+
+describe("claimForDispatch atomic status claim", () => {
+  function makeTx(vehicleCount: number, driverCount: number) {
+    return {
+      vehicle: { updateMany: vi.fn().mockResolvedValue({ count: vehicleCount }) },
+      driver: { updateMany: vi.fn().mockResolvedValue({ count: driverCount }) },
+    };
+  }
+
+  it("should flip both vehicle and driver to ON_TRIP when both are available", async () => {
+    const tx = makeTx(1, 1);
+    await claimForDispatch(tx as any, 1, 2);
+
+    expect(tx.vehicle.updateMany).toHaveBeenCalledWith({
+      where: { id: 1, status: "AVAILABLE" },
+      data: { status: "ON_TRIP" },
+    });
+    expect(tx.driver.updateMany).toHaveBeenCalledWith({
+      where: { id: 2, status: "AVAILABLE", licenseExpiry: { gte: expect.any(Date) } },
+      data: { status: "ON_TRIP" },
+    });
+  });
+
+  it("should throw when the vehicle was claimed concurrently", async () => {
+    const tx = makeTx(0, 1);
+    await expect(claimForDispatch(tx as any, 1, 2)).rejects.toBeInstanceOf(
+      DispatchConflictError,
+    );
+    // Never touches the driver once the vehicle claim fails.
+    expect(tx.driver.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("should throw when the driver was claimed concurrently", async () => {
+    const tx = makeTx(1, 0);
+    await expect(claimForDispatch(tx as any, 1, 2)).rejects.toBeInstanceOf(
+      DispatchConflictError,
+    );
   });
 });
