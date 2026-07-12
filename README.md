@@ -8,21 +8,26 @@ business rules.
 ## Tech Stack
 
 - **Next.js 14** (App Router) + **TypeScript**
-- **Prisma** ORM with **SQLite** (zero external database to install)
+- **Prisma** ORM with **PostgreSQL** (Neon serverless)
 - **Tailwind CSS** for the responsive UI (light + dark mode)
 - **Recharts** for analytics
 - Cookie-based **JWT** sessions (`jose`) + `bcryptjs`, with **RBAC**
+- Deployed on **Vercel**
 
 ## Getting Started
 
-Requires Node.js 18+.
+Requires Node.js 18+ and a PostgreSQL database (a free
+[Neon](https://neon.tech) database works well).
 
 ```bash
 npm install
-cp .env.example .env      # then set JWT_SECRET
-npm run setup             # generate client, create DB, seed demo data
+cp .env.example .env      # set DATABASE_URL, DIRECT_URL and JWT_SECRET
+npm run setup             # generate client, push schema, seed demo data
 npm run dev               # http://localhost:3000
 ```
+
+`DATABASE_URL` should be the pooled connection string and `DIRECT_URL` the
+direct (non-pooling) one, which Prisma uses for schema changes.
 
 `npm run setup` seeds four demo accounts (password `password123`):
 
