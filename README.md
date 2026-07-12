@@ -5,6 +5,11 @@ vehicle registry, driver management, trip dispatch, maintenance, fuel and expens
 tracking, and operational analytics — with role-based access and enforced
 business rules.
 
+**Live demo:** https://transitops-two.vercel.app
+
+Sign in with any demo account below (password `password123`), e.g.
+`fleet@transitops.com`.
+
 ## Tech Stack
 
 - **Next.js 14** (App Router) + **TypeScript**
