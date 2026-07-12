@@ -10,7 +10,9 @@ const createSchema = z.object({
   licenseExpiry: z.coerce.date(),
   contactNo: z.string().min(1),
   safetyScore: z.coerce.number().min(0).max(100).default(100),
-  status: z.enum(["AVAILABLE", "ON_TRIP", "OFF_DUTY", "SUSPENDED"]).default("AVAILABLE"),
+  // ON_TRIP is set by dispatching a trip; a newly registered driver can't be
+  // on one, so only the manually managed statuses are accepted here.
+  status: z.enum(["AVAILABLE", "OFF_DUTY", "SUSPENDED"]).default("AVAILABLE"),
 });
 
 export async function GET(req: Request) {
