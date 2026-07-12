@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Users & Roles (RBAC)
+// ---------------------------------------------------------------------------
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   // FLEET_MANAGER | DRIVER | SAFETY_OFFICER | FINANCIAL_ANALYST
+  createdAt    DateTime @default(now())
+
+  trips         Trip[]
+  fuelLogs      FuelLog[]
+  expenses      Expense[]
+  maintenances  Maintenance[]
+}
+
+// ---------------------------------------------------------------------------
+// Vehicle Registry
+// ---------------------------------------------------------------------------
+
+model Vehicle {
+  id             Int      @id @default(autoincrement())
+  registrationNo String   @unique
+  name           String
+  type           String   // Truck | Van | Car | Bus | Bike
+  maxLoadKg      Float
+  odometer       Float    @default(0)
+  acquisitionCost Float   @default(0)
+  region         String   @default("General")
+  status         String   @default("AVAILABLE") // AVAILABLE | ON_TRIP | IN_SHOP | RETIRED
+  createdAt      DateTime @default(now())
+
+  trips         Trip[]
+  maintenances  Maintenance[]
+  fuelLogs      FuelLog[]
+  expenses      Expense[]
+}
+
+// ---------------------------------------------------------------------------
+// Driver Management
+// ---------------------------------------------------------------------------
+
+model Driver {
+  id             Int      @id @default(autoincrement())
+  name           String
+  licenseNo      String   @unique
+  licenseCategory String  // LMV | HMV | MCWG | Other
+  licenseExpiry  DateTime
+  contactNo      String
+  safetyScore    Float    @default(100)
+  status         String   @default("AVAILABLE") // AVAILABLE | ON_TRIP | OFF_DUTY | SUSPENDED
+  createdAt      DateTime @default(now())
+
+  trips Trip[]
+}
+
+// ---------------------------------------------------------------------------
+// Trip Management
+// ---------------------------------------------------------------------------
+
+model Trip {
+  id            Int       @id @default(autoincrement())
+  source        String
+  destination   String
+  cargoWeightKg Float
+  plannedDistance Float
+  finalOdometer Float?
+  fuelConsumed  Float?
+  revenue       Float     @default(0)
+  status        String    @default("DRAFT") // DRAFT | DISPATCHED | COMPLETED | CANCELLED
+  createdAt     DateTime  @default(now())
+  dispatchedAt  DateTime?
+  completedAt   DateTime?
+
+  vehicleId Int
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+  driverId  Int
+  driver    Driver  @relation(fields: [driverId], references: [id])
+  createdById Int?
+  createdBy   User? @relation(fields: [createdById], references: [id])
+}
+
+// ---------------------------------------------------------------------------
+// Maintenance
+// ---------------------------------------------------------------------------
+
+model Maintenance {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String    @default("")
+  cost        Float     @default(0)
+  status      String    @default("OPEN") // OPEN | CLOSED
+  createdAt   DateTime  @default(now())
+  closedAt    DateTime?
+
+  vehicleId Int
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+  createdById Int?
+  createdBy   User? @relation(fields: [createdById], references: [id])
+}
+
+// ---------------------------------------------------------------------------
+// Fuel & Expense Management
+// ---------------------------------------------------------------------------
+
+model FuelLog {
+  id        Int      @id @default(autoincrement())
+  liters    Float
+  cost      Float
+  odometer  Float    @default(0)
+  date      DateTime @default(now())
+
+  vehicleId Int
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+  createdById Int?
+  createdBy   User? @relation(fields: [createdById], references: [id])
+}
+
+model Expense {
+  id        Int      @id @default(autoincrement())
+  category  String   // TOLL | REPAIR | INSURANCE | FINE | OTHER
+  amount    Float
+  note      String   @default("")
+  date      DateTime @default(now())
+
+  vehicleId Int
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+  createdById Int?
+  createdBy   User? @relation(fields: [createdById], references: [id])
+}
