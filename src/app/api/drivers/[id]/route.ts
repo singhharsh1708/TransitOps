@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ok, fail, requireWrite } from "@/lib/api";
+import { LICENSE_CATEGORIES } from "@/lib/constants";
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
   licenseNo: z.string().min(1).optional(),
-  licenseCategory: z.string().min(1).optional(),
+  licenseCategory: z.enum(LICENSE_CATEGORIES as [string, ...string[]]).optional(),
   licenseExpiry: z.coerce.date().optional(),
   contactNo: z.string().min(1).optional(),
   safetyScore: z.coerce.number().min(0).max(100).optional(),
@@ -36,10 +37,12 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   if ("error" in auth) return auth.error;
 
   const id = Number(params.id);
-  const activeTrip = await prisma.trip.findFirst({
-    where: { driverId: id, status: { in: ["DRAFT", "DISPATCHED"] } },
-  });
-  if (activeTrip) return fail("Cannot delete a driver with active trips", 409);
+  // A driver referenced by any trip (past or present) cannot be hard-deleted
+  // without violating foreign keys; block it rather than returning a 500.
+  const trips = await prisma.trip.count({ where: { driverId: id } });
+  if (trips > 0) {
+    return fail("Cannot delete a driver with trip history; set them to Off Duty instead", 409);
+  }
 
   await prisma.driver.delete({ where: { id } });
   return ok({ success: true });

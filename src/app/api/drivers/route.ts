@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ok, fail, requireAuth, requireWrite } from "@/lib/api";
+import { LICENSE_CATEGORIES } from "@/lib/constants";
 
 const createSchema = z.object({
   name: z.string().min(1),
   licenseNo: z.string().min(1),
-  licenseCategory: z.string().min(1),
+  licenseCategory: z.enum(LICENSE_CATEGORIES as [string, ...string[]]),
   licenseExpiry: z.coerce.date(),
   contactNo: z.string().min(1),
   safetyScore: z.coerce.number().min(0).max(100).default(100),

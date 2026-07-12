@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ok, fail, requireAuth, requireWrite } from "@/lib/api";
+import { VEHICLE_TYPES } from "@/lib/constants";
 
 const createSchema = z.object({
   registrationNo: z.string().min(1),
   name: z.string().min(1),
-  type: z.string().min(1),
+  type: z.enum(VEHICLE_TYPES as [string, ...string[]]),
   maxLoadKg: z.coerce.number().positive(),
   odometer: z.coerce.number().min(0).default(0),
   acquisitionCost: z.coerce.number().min(0).default(0),

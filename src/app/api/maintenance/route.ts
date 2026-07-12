@@ -39,6 +39,9 @@ export async function POST(req: Request) {
   if (vehicle.status === "RETIRED") {
     return fail("Vehicle is Retired");
   }
+  if (vehicle.status === "IN_SHOP") {
+    return fail("Vehicle already has an open maintenance log; close it before opening another");
+  }
 
   // Opening a maintenance record moves the vehicle to In Shop, removing it from
   // the dispatch pool.

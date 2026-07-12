@@ -17,9 +17,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const parsed = schema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Invalid input");
 
-  const trip = await prisma.trip.findUnique({ where: { id } });
+  const trip = await prisma.trip.findUnique({ where: { id }, include: { vehicle: true } });
   if (!trip) return fail("Trip not found", 404);
   if (trip.status !== "DISPATCHED") return fail("Only dispatched trips can be completed");
+
+  // The odometer can only move forward.
+  if (parsed.data.finalOdometer < trip.vehicle.odometer) {
+    return fail(
+      `Final odometer ${parsed.data.finalOdometer} is below the vehicle's current reading ${trip.vehicle.odometer}`,
+    );
+  }
 
   const updated = await prisma.$transaction(async (tx) => {
     const t = await tx.trip.update({

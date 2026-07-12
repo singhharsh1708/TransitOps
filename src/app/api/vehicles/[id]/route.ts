@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ok, fail, requireWrite } from "@/lib/api";
+import { VEHICLE_TYPES } from "@/lib/constants";
 
 const updateSchema = z.object({
   registrationNo: z.string().min(1).optional(),
   name: z.string().min(1).optional(),
-  type: z.string().min(1).optional(),
+  type: z.enum(VEHICLE_TYPES as [string, ...string[]]).optional(),
   maxLoadKg: z.coerce.number().positive().optional(),
   odometer: z.coerce.number().min(0).optional(),
   acquisitionCost: z.coerce.number().min(0).optional(),
@@ -37,10 +38,17 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   if ("error" in auth) return auth.error;
 
   const id = Number(params.id);
-  const activeTrip = await prisma.trip.findFirst({
-    where: { vehicleId: id, status: { in: ["DRAFT", "DISPATCHED"] } },
-  });
-  if (activeTrip) return fail("Cannot delete a vehicle with active trips", 409);
+  // Deleting a vehicle that owns any history would violate foreign keys, so
+  // block it with a clear message instead of surfacing a 500. Retire it instead.
+  const [trips, fuelLogs, expenses, maintenances] = await Promise.all([
+    prisma.trip.count({ where: { vehicleId: id } }),
+    prisma.fuelLog.count({ where: { vehicleId: id } }),
+    prisma.expense.count({ where: { vehicleId: id } }),
+    prisma.maintenance.count({ where: { vehicleId: id } }),
+  ]);
+  if (trips + fuelLogs + expenses + maintenances > 0) {
+    return fail("Cannot delete a vehicle with trip, fuel, expense or maintenance history; set it to Retired instead", 409);
+  }
 
   await prisma.vehicle.delete({ where: { id } });
   return ok({ success: true });

@@ -40,6 +40,9 @@ export async function POST(req: Request) {
   const vehicle = await prisma.vehicle.findUnique({ where: { id: data.vehicleId } });
   if (!vehicle) return fail("Vehicle not found", 404);
 
+  const driver = await prisma.driver.findUnique({ where: { id: data.driverId } });
+  if (!driver) return fail("Driver not found", 404);
+
   // Cargo weight must not exceed capacity — checked at creation for every trip.
   if (data.cargoWeightKg > vehicle.maxLoadKg) {
     return fail(`Cargo ${data.cargoWeightKg}kg exceeds vehicle capacity ${vehicle.maxLoadKg}kg`);
