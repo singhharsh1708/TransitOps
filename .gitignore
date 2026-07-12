@@ -30,3 +30,6 @@ yarn-error.log*
 .vscode/
 .idea/
 .vercel
+
+# typescript incremental build cache
+tsconfig.tsbuildinfo
