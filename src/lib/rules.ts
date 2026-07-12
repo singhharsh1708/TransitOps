@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./db";
 
 // ---------------------------------------------------------------------------
@@ -55,6 +56,37 @@ export async function validateDispatch(input: TripInput): Promise<RuleResult> {
   }
 
   return { ok: true };
+}
+
+// Thrown when a vehicle or driver was claimed by a concurrent dispatch between
+// validation and the status flip.
+export class DispatchConflictError extends Error {}
+
+// Atomically claims the vehicle and driver for a trip inside the caller's
+// transaction. The status guard in the WHERE clause is what makes this safe
+// under concurrency: two simultaneous dispatches both pass validateDispatch,
+// but only one UPDATE matches status = AVAILABLE — the other sees count 0 and
+// the whole transaction rolls back.
+export async function claimForDispatch(
+  tx: Prisma.TransactionClient,
+  vehicleId: number,
+  driverId: number,
+): Promise<void> {
+  const vehicle = await tx.vehicle.updateMany({
+    where: { id: vehicleId, status: "AVAILABLE" },
+    data: { status: "ON_TRIP" },
+  });
+  if (vehicle.count === 0) {
+    throw new DispatchConflictError("Vehicle is no longer available for dispatch");
+  }
+
+  const driver = await tx.driver.updateMany({
+    where: { id: driverId, status: "AVAILABLE", licenseExpiry: { gte: new Date() } },
+    data: { status: "ON_TRIP" },
+  });
+  if (driver.count === 0) {
+    throw new DispatchConflictError("Driver is no longer available for dispatch");
+  }
 }
 
 // Returns vehicles eligible for dispatch selection (Available only).

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ok, fail, requireAuth, requireWrite } from "@/lib/api";
-import { validateDispatch } from "@/lib/rules";
+import { validateDispatch, claimForDispatch, DispatchConflictError } from "@/lib/rules";
 
 const createSchema = z.object({
   source: z.string().min(1),
@@ -57,26 +57,32 @@ export async function POST(req: Request) {
     });
     if (!check.ok) return fail(check.message);
 
-    const trip = await prisma.$transaction(async (tx) => {
-      const t = await tx.trip.create({
-        data: {
-          source: data.source,
-          destination: data.destination,
-          vehicleId: data.vehicleId,
-          driverId: data.driverId,
-          cargoWeightKg: data.cargoWeightKg,
-          plannedDistance: data.plannedDistance,
-          revenue: data.revenue,
-          status: "DISPATCHED",
-          dispatchedAt: new Date(),
-          createdById: auth.user.id,
-        },
+    try {
+      const trip = await prisma.$transaction(async (tx) => {
+        // Re-claims vehicle and driver atomically: validateDispatch above gives
+        // friendly errors, but only this guard is safe against a concurrent
+        // dispatch grabbing them between the check and the create.
+        await claimForDispatch(tx, data.vehicleId, data.driverId);
+        return tx.trip.create({
+          data: {
+            source: data.source,
+            destination: data.destination,
+            vehicleId: data.vehicleId,
+            driverId: data.driverId,
+            cargoWeightKg: data.cargoWeightKg,
+            plannedDistance: data.plannedDistance,
+            revenue: data.revenue,
+            status: "DISPATCHED",
+            dispatchedAt: new Date(),
+            createdById: auth.user.id,
+          },
+        });
       });
-      await tx.vehicle.update({ where: { id: data.vehicleId }, data: { status: "ON_TRIP" } });
-      await tx.driver.update({ where: { id: data.driverId }, data: { status: "ON_TRIP" } });
-      return t;
-    });
-    return ok(trip, { status: 201 });
+      return ok(trip, { status: 201 });
+    } catch (err) {
+      if (err instanceof DispatchConflictError) return fail(err.message, 409);
+      throw err;
+    }
   }
 
   const trip = await prisma.trip.create({

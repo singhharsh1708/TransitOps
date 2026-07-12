@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ok, fail, requireWrite } from "@/lib/api";
-import { validateDispatch } from "@/lib/rules";
+import { validateDispatch, claimForDispatch, DispatchConflictError } from "@/lib/rules";
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const auth = await requireWrite("trips");
@@ -18,15 +18,20 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   });
   if (!check.ok) return fail(check.message);
 
-  const updated = await prisma.$transaction(async (tx) => {
-    const t = await tx.trip.update({
-      where: { id },
-      data: { status: "DISPATCHED", dispatchedAt: new Date() },
+  try {
+    const updated = await prisma.$transaction(async (tx) => {
+      // Re-claims vehicle and driver atomically: validateDispatch above gives
+      // friendly errors, but only this guard is safe against a concurrent
+      // dispatch grabbing them between the check and the update.
+      await claimForDispatch(tx, trip.vehicleId, trip.driverId);
+      return tx.trip.update({
+        where: { id },
+        data: { status: "DISPATCHED", dispatchedAt: new Date() },
+      });
     });
-    await tx.vehicle.update({ where: { id: trip.vehicleId }, data: { status: "ON_TRIP" } });
-    await tx.driver.update({ where: { id: trip.driverId }, data: { status: "ON_TRIP" } });
-    return t;
-  });
-
-  return ok(updated);
+    return ok(updated);
+  } catch (err) {
+    if (err instanceof DispatchConflictError) return fail(err.message, 409);
+    throw err;
+  }
 }
