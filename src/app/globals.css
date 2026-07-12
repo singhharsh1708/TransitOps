@@ -74,6 +74,40 @@ body {
   }
 }
 
+/* Animated aurora backdrop */
+@keyframes aurora-move {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(8%, -6%) scale(1.15); }
+  66% { transform: translate(-6%, 8%) scale(0.95); }
+}
+.aurora {
+  position: fixed;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(80px);
+  opacity: 0.5;
+}
+.dark .aurora { opacity: 0.4; }
+.aurora::before,
+.aurora::after {
+  content: "";
+  position: absolute;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 9999px;
+}
+.aurora::before {
+  top: 0; left: 10%;
+  background: radial-gradient(circle, #7c3aed, transparent 60%);
+  animation: aurora-move 18s ease-in-out infinite;
+}
+.aurora::after {
+  bottom: 0; right: 10%;
+  background: radial-gradient(circle, #06b6d4, transparent 60%);
+  animation: aurora-move 22s ease-in-out infinite reverse;
+}
+
 /* Loading skeleton shimmer */
 .skeleton {
   @apply relative overflow-hidden rounded-lg bg-slate-200 dark:bg-slate-800;

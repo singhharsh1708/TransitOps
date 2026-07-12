@@ -61,7 +61,8 @@ export default function AppShell({
   const initials = user.name.split(" ").map((s) => s[0]).slice(0, 2).join("");
 
   return (
-    <div className="flex min-h-screen bg-mesh">
+    <div className="relative flex min-h-screen bg-mesh">
+      <div className="aurora" />
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 transform border-r border-slate-200/60 bg-white/80 backdrop-blur-xl transition-transform duration-300 dark:border-slate-800/60 dark:bg-slate-950/80 lg:translate-x-0 ${
@@ -110,7 +111,7 @@ export default function AppShell({
       </AnimatePresence>
 
       {/* Main */}
-      <div className="flex flex-1 flex-col lg:pl-64">
+      <div className="relative z-10 flex flex-1 flex-col lg:pl-64">
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200/60 bg-white/70 px-4 backdrop-blur-xl dark:border-slate-800/60 dark:bg-slate-950/70 sm:px-6">
           <button className="btn-ghost px-2.5 py-2 lg:hidden" onClick={() => setOpen(true)}>☰</button>
           <div className="hidden lg:block" />

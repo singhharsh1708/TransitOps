@@ -7,6 +7,8 @@ import {
 } from "recharts";
 import { api, fmtMoney } from "@/lib/client";
 import { TableSkeleton } from "@/components/ui";
+import TiltCard from "@/components/TiltCard";
+import CountUp from "@/components/CountUp";
 
 type Dashboard = {
   kpis: {
@@ -20,13 +22,13 @@ type Dashboard = {
 const PIE_COLORS = ["#94a3b8", "#3b82f6", "#10b981", "#ef4444"];
 
 const TILES = [
-  { key: "activeVehicles", label: "Active Vehicles", icon: "▤", grad: "from-violet-500 to-purple-600" },
-  { key: "availableVehicles", label: "Available", icon: "✓", grad: "from-emerald-500 to-teal-600" },
-  { key: "inMaintenance", label: "In Maintenance", icon: "⚙", grad: "from-amber-500 to-orange-600" },
-  { key: "fleetUtilization", label: "Fleet Utilization", icon: "◔", grad: "from-fuchsia-500 to-pink-600", suffix: "%" },
-  { key: "activeTrips", label: "Active Trips", icon: "➤", grad: "from-blue-500 to-indigo-600" },
-  { key: "pendingTrips", label: "Pending Trips", icon: "◷", grad: "from-slate-500 to-slate-700" },
-  { key: "driversOnDuty", label: "Drivers On Duty", icon: "◉", grad: "from-cyan-500 to-blue-600" },
+  { key: "activeVehicles", label: "Active Vehicles", icon: "▤", grad: "from-violet-500 to-purple-600", rgb: "139,92,246" },
+  { key: "availableVehicles", label: "Available", icon: "✓", grad: "from-emerald-500 to-teal-600", rgb: "16,185,129" },
+  { key: "inMaintenance", label: "In Maintenance", icon: "⚙", grad: "from-amber-500 to-orange-600", rgb: "245,158,11" },
+  { key: "fleetUtilization", label: "Fleet Utilization", icon: "◔", grad: "from-fuchsia-500 to-pink-600", suffix: "%", rgb: "217,70,239" },
+  { key: "activeTrips", label: "Active Trips", icon: "➤", grad: "from-blue-500 to-indigo-600", rgb: "59,130,246" },
+  { key: "pendingTrips", label: "Pending Trips", icon: "◷", grad: "from-slate-500 to-slate-700", rgb: "100,116,139" },
+  { key: "driversOnDuty", label: "Drivers On Duty", icon: "◉", grad: "from-cyan-500 to-blue-600", rgb: "6,182,212" },
 ] as const;
 
 function RadialGauge({ value, label, sub, color }: { value: number; label: string; sub: string; color: string }) {
@@ -93,16 +95,22 @@ export default function DashboardPage() {
         {TILES.map((t, i) => (
           <motion.div
             key={t.key}
-            className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-4 shadow-card dark:border-slate-800 dark:bg-slate-900/70"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${t.grad} text-white shadow-sm`}>
-              {t.icon}
-            </div>
-            <div className="text-2xl font-bold tabular-nums">{k[t.key]}{"suffix" in t ? t.suffix : ""}</div>
-            <div className="mt-0.5 text-xs font-medium text-slate-500">{t.label}</div>
+            <TiltCard
+              glow={t.rgb}
+              className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-card dark:border-slate-800 dark:bg-slate-900/70"
+            >
+              <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${t.grad} text-white shadow-sm`}>
+                {t.icon}
+              </div>
+              <div className="text-2xl font-bold">
+                <CountUp value={k[t.key]} suffix={"suffix" in t ? t.suffix : ""} />
+              </div>
+              <div className="mt-0.5 text-xs font-medium text-slate-500">{t.label}</div>
+            </TiltCard>
           </motion.div>
         ))}
       </div>

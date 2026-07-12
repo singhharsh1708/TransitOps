@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { api } from "@/lib/client";
 import { ErrorText } from "@/components/ui";
+
+const Scene3D = dynamic(() => import("@/components/three/Scene3D"), { ssr: false });
 
 const DEMO = [
   { email: "fleet@transitops.com", role: "Fleet Manager" },
@@ -38,11 +41,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen bg-[#070b14] text-white">
       {/* Left: visual / marketing panel */}
       <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden border-r border-white/5 p-12 lg:flex">
-        <div
-          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-70"
-          style={{ backgroundImage: "url(/images/login-graphic.png)" }}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#070b14] via-[#070b14]/40 to-transparent" />
+        <div className="absolute inset-0"><Scene3D /></div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#070b14] via-transparent to-[#070b14]/30" />
         <div className="relative z-10">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gradient text-lg font-black shadow-glow">T</div>
           <h2 className="mt-8 text-4xl font-bold tracking-tight">TransitOps</h2>
