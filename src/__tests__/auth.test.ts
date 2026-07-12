@@ -79,9 +79,9 @@ describe("auth helpers", () => {
       
       // First create a session to get the token value
       let generatedToken = "";
-      vi.mocked(cookieStore.set).mockImplementation((name, value) => {
-        generatedToken = value as string;
-      });
+      vi.mocked(cookieStore.set).mockImplementation(((_name: string, value: string) => {
+        generatedToken = value;
+      }) as never);
       await createSession(mockUser);
 
       // Mock cookieStore.get to return the generated token
