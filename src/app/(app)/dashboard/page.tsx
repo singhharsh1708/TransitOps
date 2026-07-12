@@ -29,6 +29,36 @@ const TILES = [
   { key: "driversOnDuty", label: "Drivers On Duty", icon: "◉", grad: "from-cyan-500 to-blue-600" },
 ] as const;
 
+function RadialGauge({ value, label, sub, color }: { value: number; label: string; sub: string; color: string }) {
+  const r = 42;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.max(0, Math.min(100, value));
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative h-28 w-28">
+        <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
+          <circle cx="50" cy="50" r={r} fill="none" strokeWidth="9" className="stroke-slate-200 dark:stroke-slate-800" />
+          <motion.circle
+            cx="50" cy="50" r={r} fill="none" strokeWidth="9" strokeLinecap="round"
+            stroke={color} strokeDasharray={circ}
+            initial={{ strokeDashoffset: circ }}
+            animate={{ strokeDashoffset: circ - (circ * pct) / 100 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            style={{ filter: `drop-shadow(0 0 6px ${color}66)` }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold tabular-nums">{Math.round(pct)}%</span>
+        </div>
+      </div>
+      <div className="mt-2 text-center">
+        <div className="text-sm font-semibold">{label}</div>
+        <div className="text-xs text-slate-400">{sub}</div>
+      </div>
+    </div>
+  );
+}
+
 function ChartTooltip({ active, payload, label, money }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -76,6 +106,21 @@ export default function DashboardPage() {
           </motion.div>
         ))}
       </div>
+
+      <motion.div className="card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <h2 className="mb-5 font-semibold">Operational Performance</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <RadialGauge value={k.fleetUtilization} label="Fleet Utilization" sub="on trip / active" color="#8b5cf6" />
+          <RadialGauge
+            value={k.activeVehicles ? (k.availableVehicles / k.activeVehicles) * 100 : 0}
+            label="Availability" sub="available / active" color="#10b981"
+          />
+          <RadialGauge
+            value={k.activeVehicles ? (k.inMaintenance / (k.activeVehicles + k.inMaintenance)) * 100 : 0}
+            label="In Maintenance" sub="share of fleet" color="#f59e0b"
+          />
+        </div>
+      </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <motion.div className="card" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>

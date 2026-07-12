@@ -8,16 +8,20 @@ import { api } from "@/lib/client";
 import { ROLE_LABELS } from "@/lib/constants";
 import type { SessionUser } from "@/lib/auth";
 import { UserProvider } from "./UserContext";
+import {
+  IconDashboard, IconVehicle, IconDriver, IconTrip,
+  IconMaintenance, IconFuel, IconExpense, IconReport,
+} from "./icons";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: "◈" },
-  { href: "/vehicles", label: "Vehicles", icon: "▤" },
-  { href: "/drivers", label: "Drivers", icon: "◉" },
-  { href: "/trips", label: "Trips", icon: "➤" },
-  { href: "/maintenance", label: "Maintenance", icon: "⚙" },
-  { href: "/fuel", label: "Fuel", icon: "◔" },
-  { href: "/expenses", label: "Expenses", icon: "▦" },
-  { href: "/reports", label: "Reports", icon: "▨" },
+  { href: "/dashboard", label: "Dashboard", Icon: IconDashboard },
+  { href: "/vehicles", label: "Vehicles", Icon: IconVehicle },
+  { href: "/drivers", label: "Drivers", Icon: IconDriver },
+  { href: "/trips", label: "Trips", Icon: IconTrip },
+  { href: "/maintenance", label: "Maintenance", Icon: IconMaintenance },
+  { href: "/fuel", label: "Fuel", Icon: IconFuel },
+  { href: "/expenses", label: "Expenses", Icon: IconExpense },
+  { href: "/reports", label: "Reports", Icon: IconReport },
 ];
 
 function ThemeToggle() {
@@ -74,6 +78,7 @@ export default function AppShell({
         <nav className="space-y-1 px-3 py-4">
           {NAV.map((item) => {
             const active = pathname === item.href;
+            const Icon = item.Icon;
             return (
               <Link
                 key={item.href}
@@ -85,7 +90,7 @@ export default function AppShell({
                     : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/60"
                 }`}
               >
-                <span className={`text-base ${active ? "" : "opacity-70 group-hover:opacity-100"}`}>{item.icon}</span>
+                <Icon className={active ? "" : "opacity-70 group-hover:opacity-100"} />
                 {item.label}
               </Link>
             );
