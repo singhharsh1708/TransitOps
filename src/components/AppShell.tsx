@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/client";
 import { ROLE_LABELS } from "@/lib/constants";
@@ -25,9 +25,14 @@ const NAV = [
 ];
 
 function ThemeToggle() {
-  const [dark, setDark] = useState(
-    typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
-  );
+  // The applied theme is only known on the client, so read it after mount.
+  // Reading it during render makes the server and client disagree on the
+  // icon, and the resulting hydration error re-renders the root and strips
+  // the dark class the <head> script just applied.
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark"));
+  }, []);
   function toggle() {
     const next = !dark;
     setDark(next);
