@@ -2,11 +2,9 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import type { Role } from "./constants";
+import { jwtSecret as secret } from "./secret";
 
 const COOKIE_NAME = "transitops_session";
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "insecure-dev-secret",
-);
 
 export type SessionUser = {
   id: number;
