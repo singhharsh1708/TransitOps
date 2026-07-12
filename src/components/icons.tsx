@@ -1,22 +1,27 @@
 // Lightweight stroke icons (Lucide-style paths), no external dependency.
 type P = { className?: string };
 const base = "h-[18px] w-[18px]";
-const svg = (children: React.ReactNode) => ({ className }: P) => (
-  <svg
-    className={`${base} ${className ?? ""}`}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.75"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    {children}
-  </svg>
-);
+const svg = (name: string, children: React.ReactNode) => {
+  const Icon = ({ className }: P) => (
+    <svg
+      className={`${base} ${className ?? ""}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+  Icon.displayName = name;
+  return Icon;
+};
 
 export const IconDashboard = svg(
+  "IconDashboard",
   <>
     <rect x="3" y="3" width="7" height="9" rx="1.5" />
     <rect x="14" y="3" width="7" height="5" rx="1.5" />
@@ -26,6 +31,7 @@ export const IconDashboard = svg(
 );
 
 export const IconVehicle = svg(
+  "IconVehicle",
   <>
     <path d="M3 7h11v9H3z" />
     <path d="M14 10h4l3 3v3h-7z" />
@@ -35,6 +41,7 @@ export const IconVehicle = svg(
 );
 
 export const IconDriver = svg(
+  "IconDriver",
   <>
     <circle cx="12" cy="8" r="3.5" />
     <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" />
@@ -42,6 +49,7 @@ export const IconDriver = svg(
 );
 
 export const IconTrip = svg(
+  "IconTrip",
   <>
     <circle cx="6" cy="19" r="2" />
     <circle cx="18" cy="5" r="2" />
@@ -50,10 +58,12 @@ export const IconTrip = svg(
 );
 
 export const IconMaintenance = svg(
+  "IconMaintenance",
   <path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8 7.2 20l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.6 2.6-2.3-2.3z" />,
 );
 
 export const IconFuel = svg(
+  "IconFuel",
   <>
     <path d="M4 20V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v15" />
     <path d="M3 20h11" />
@@ -63,6 +73,7 @@ export const IconFuel = svg(
 );
 
 export const IconExpense = svg(
+  "IconExpense",
   <>
     <rect x="3" y="5" width="18" height="14" rx="2" />
     <path d="M3 10h18" />
@@ -71,6 +82,7 @@ export const IconExpense = svg(
 );
 
 export const IconReport = svg(
+  "IconReport",
   <>
     <path d="M4 20V4" />
     <path d="M4 20h16" />
